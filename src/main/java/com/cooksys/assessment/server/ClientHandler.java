@@ -17,10 +17,12 @@ public class ClientHandler implements Runnable {
 	private Logger log = LoggerFactory.getLogger(ClientHandler.class);
 
 	private Socket socket;
+	private Server server;
 
-	public ClientHandler(Socket socket) {
+	public ClientHandler(Socket socket, Server server) {
 		super();
 		this.socket = socket;
+		this.server = server;
 	}
 
 	public void run() {
@@ -36,9 +38,13 @@ public class ClientHandler implements Runnable {
 
 				switch (message.getCommand()) {
 					case "connect":
+						server.addHandler(this);
 						log.info("user <{}> connected", message.getUsername());
+						message.setContents("user <"+message.getUsername()+"> connected" );
+						server.broadcastSend(message);
 						break;
 					case "disconnect":
+						server.removeHandler(this);
 						log.info("user <{}> disconnected", message.getUsername());
 						this.socket.close();
 						break;
@@ -48,12 +54,30 @@ public class ClientHandler implements Runnable {
 						writer.write(response);
 						writer.flush();
 						break;
+					case "broadcast":
+						log.info("user <{}> broadcasted message <{}>", message.getUsername(), message.getContents());
+						server.broadcastSend(message);
+						break;
+					case "@":
+						log.info("not implemented yet");
+						break;
+					case "users":
+						log.info("not implemented yet");
 				}
 			}
 
 		} catch (IOException e) {
 			log.error("Something went wrong :/", e);
 		}
+	}
+
+	public void broadcastRecieve(Message m) throws IOException {
+		ObjectMapper br = new ObjectMapper();
+		PrintWriter broad = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+		String response = br.writeValueAsString(m);
+		log.info(response);
+		broad.write(response);
+		broad.flush();
 	}
 
 }
