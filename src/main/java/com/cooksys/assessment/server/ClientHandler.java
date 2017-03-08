@@ -18,6 +18,15 @@ public class ClientHandler implements Runnable {
 
 	private Socket socket;
 	private Server server;
+	private String username;
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
 
 	public ClientHandler(Socket socket, Server server) {
 		super();
@@ -38,13 +47,17 @@ public class ClientHandler implements Runnable {
 
 				switch (message.getCommand()) {
 					case "connect":
+						//handle diff usernames later
 						server.addHandler(this);
+						setUsername(message.getUsername());
 						log.info("user <{}> connected", message.getUsername());
 						message.setContents("user <"+message.getUsername()+"> connected" );
 						server.broadcastSend(message);
 						break;
 					case "disconnect":
 						server.removeHandler(this);
+						message.setContents("user <"+message.getUsername()+"> disconnected" );
+						server.broadcastSend(message);
 						log.info("user <{}> disconnected", message.getUsername());
 						this.socket.close();
 						break;
@@ -58,11 +71,21 @@ public class ClientHandler implements Runnable {
 						log.info("user <{}> broadcasted message <{}>", message.getUsername(), message.getContents());
 						server.broadcastSend(message);
 						break;
-					case "@":
-						log.info("not implemented yet");
-						break;
 					case "users":
-						log.info("not implemented yet");
+						log.info("user <{}> requested user list", message.getUsername());
+						message.setContents(server.getUsers());
+						String users = mapper.writeValueAsString(message);
+						writer.write(users);
+						writer.flush();
+						break;
+					default:
+						log.info("command didn't match case");
+						if(message.getCommand().matches("@(.*)")){
+							String c = message.getCommand().replaceAll("[^\\w\\s]", "");
+							log.info("user <{}> directly messaged user <{}> with message <{}>", message.getUsername(), c, message.getContents());
+							server.directSend(message, c);
+						}
+						break;
 				}
 			}
 
@@ -71,11 +94,10 @@ public class ClientHandler implements Runnable {
 		}
 	}
 
-	public void broadcastRecieve(Message m) throws IOException {
+	public void recieveMessage(Message m) throws IOException {
 		ObjectMapper br = new ObjectMapper();
 		PrintWriter broad = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
 		String response = br.writeValueAsString(m);
-		log.info(response);
 		broad.write(response);
 		broad.flush();
 	}

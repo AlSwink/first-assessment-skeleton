@@ -37,8 +37,15 @@ public class Server implements Runnable {
 	}
 	public void broadcastSend(Message m) throws IOException{
 		for(ClientHandler c : connected){
-			c.broadcastRecieve(m);
+			c.recieveMessage(m);
 		}
+	}
+	public String getUsers(){
+		String userList = "";
+		for(ClientHandler c : connected){
+			userList = userList + c.getUsername() + "\n";
+		}
+		return userList;
 	}
 	
 	public void run() {
@@ -54,6 +61,15 @@ public class Server implements Runnable {
 		} catch (IOException e) {
 			log.error("Something went wrong :/", e);
 		}
+	}
+
+	public void directSend(Message message, String c) throws IOException {
+		for(ClientHandler h : connected){
+			if(h.getUsername().equals(c)){
+				h.recieveMessage(message);
+			}
+		}
+		
 	}
 
 }
