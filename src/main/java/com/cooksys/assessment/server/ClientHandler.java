@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,12 +52,14 @@ public class ClientHandler implements Runnable {
 						//handle diff usernames later
 						server.addHandler(this);
 						setUsername(message.getUsername());
+						createTimestamp(message);
 						log.info("user <{}> connected", message.getUsername());
-						message.setContents("user <"+message.getUsername()+"> connected" );
+						message.setContents("user <" + message.getUsername() + "> connected" );
 						server.broadcastSend(message);
 						break;
 					case "disconnect":
 						server.removeHandler(this);
+						createTimestamp(message);
 						message.setContents("user <"+message.getUsername()+"> disconnected" );
 						server.broadcastSend(message);
 						log.info("user <{}> disconnected", message.getUsername());
@@ -63,27 +67,33 @@ public class ClientHandler implements Runnable {
 						break;
 					case "echo":
 						log.info("user <{}> echoed message <{}>", message.getUsername(), message.getContents());
+						createTimestamp(message);
 						String response = mapper.writeValueAsString(message);
 						writer.write(response);
 						writer.flush();
 						break;
 					case "broadcast":
 						log.info("user <{}> broadcasted message <{}>", message.getUsername(), message.getContents());
+						createTimestamp(message);
 						server.broadcastSend(message);
 						break;
 					case "users":
 						log.info("user <{}> requested user list", message.getUsername());
 						message.setContents(server.getUsers());
+						createTimestamp(message);
 						String users = mapper.writeValueAsString(message);
 						writer.write(users);
 						writer.flush();
 						break;
 					default:
-						log.info("command didn't match case");
 						if(message.getCommand().matches("@(.*)")){
+							createTimestamp(message);
 							String c = message.getCommand().replaceAll("[^\\w\\s]", "");
 							log.info("user <{}> directly messaged user <{}> with message <{}>", message.getUsername(), c, message.getContents());
 							server.directSend(message, c);
+							String self = mapper.writeValueAsString(message);
+							writer.write(self);
+							writer.flush();
 						}
 						break;
 				}
@@ -101,5 +111,8 @@ public class ClientHandler implements Runnable {
 		broad.write(response);
 		broad.flush();
 	}
-
+	public void createTimestamp(Message m){
+		String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
+		m.setTimestamp(timeStamp);
+	}
 }

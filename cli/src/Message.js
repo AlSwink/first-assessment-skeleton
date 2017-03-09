@@ -20,19 +20,25 @@ export class Message {
   }
 // use to display
   toString () {
-    let st = `${this.timestamp}: `
+    let st
     switch (this.command) {
       case 'echo':
-        color = 'white'
+        st = `${this.timestamp} <${this.username}> (echo): ${this.contents}`
         break
       case 'broadcast':
-        color = 'red'
+        st = `${this.timestamp} <${this.username}> (all): ${this.contents}`
         break
       case 'users':
-        color = 'blue'
+        st = `${this.timestamp}: currently connected users: ${this.contents}`
+        break
+      case 'connect':
+        st = `${this.timestamp}: <${this.username}> has connected`
+        break
+      case 'disconnect':
+        st = `${this.timestamp}: <${this.username}> has disconnected`
         break
       default:
-        color = 'magenta'
+        st = `${this.timestamp} <${this.username}> (whisper): ${this.contents}`
         break
     }
     return st
