@@ -71,5 +71,12 @@ public class Server implements Runnable {
 		}
 		
 	}
-
+	
+	public boolean nameCheck(String name){
+		for(ClientHandler c : connected){
+			if(c.getUsername().equals(name))
+				return true;
+		}
+		return false;
+	}
 }

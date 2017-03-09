@@ -26,13 +26,17 @@ export class Message {
         st = `${this.timestamp} <${this.username}> (echo): ${this.contents}`
         break
       case 'broadcast':
-        st = `${this.timestamp} <${this.username}> (all): ${this.contents}`
+        st = `${this.timestamp}: <${this.username}> (all): ${this.contents}`
         break
       case 'users':
         st = `${this.timestamp}: currently connected users: ${this.contents}`
         break
       case 'connect':
-        st = `${this.timestamp}: <${this.username}> has connected`
+        if (this.contents === 'rejected') {
+          st = `Username <${this.username}> is already in use. Please choose another username.`
+        } else {
+          st = `${this.timestamp}: <${this.username}> has connected`
+        }
         break
       case 'disconnect':
         st = `${this.timestamp}: <${this.username}> has disconnected`

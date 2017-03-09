@@ -46,16 +46,24 @@ public class ClientHandler implements Runnable {
 			while (!socket.isClosed()) {
 				String raw = reader.readLine();
 				Message message = mapper.readValue(raw, Message.class);
-
+				
 				switch (message.getCommand()) {
 					case "connect":
-						//handle diff usernames later
+						
+						if(server.nameCheck(message.getUsername())){
+							message.setContents("rejected");
+							String reject = mapper.writeValueAsString(message);
+							writer.write(reject);
+							writer.flush();
+							this.socket.close();
+						} else {
 						server.addHandler(this);
 						setUsername(message.getUsername());
 						createTimestamp(message);
 						log.info("user <{}> connected", message.getUsername());
 						message.setContents("user <" + message.getUsername() + "> connected" );
 						server.broadcastSend(message);
+						}
 						break;
 					case "disconnect":
 						server.removeHandler(this);

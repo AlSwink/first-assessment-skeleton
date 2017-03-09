@@ -34,13 +34,16 @@ cli
           color = 'white'
           break
         case 'broadcast':
-          color = 'red'
+          color = 'gray'
           break
         case 'users':
           color = 'blue'
           break
         case 'connect':
           color = 'green'
+          break
+        case 'disconnect':
+          color = 'red'
           break
         default:
           color = 'magenta'
@@ -54,7 +57,7 @@ cli
     })
   })
   .action(function (input, callback) {
-    const [ command, ...rest ] = words(input, /[@.'\w]+/g)
+    const [ command, ...rest ] = words(input, /[:;()\\/@.'\w]+/g)
     const contents = rest.join(' ')
     if (command === 'disconnect') {
       server.end(new Message({ username, command }).toJSON() + '\n')
@@ -67,14 +70,14 @@ cli
     } else if (command === 'users') {
       server.write(new Message({ username, command, contents }).toJSON() + '\n')
       prevCommand = command
-    } else if (command.includes('@')) {
+    } else if (command.charAt(0) === '@') {
       server.write(new Message({ username, command, contents }).toJSON() + '\n')
       prevCommand = command
     } else if (prevCommand) {
       const newCont = command + ' ' + contents
       server.write(new Message({ username, command: `${prevCommand}`, contents: `${newCont}` }).toJSON() + '\n')
     } else {
-      this.log(`Command <${command}> was not recognized`)
+      this.log(`Command <${command}> was not recognized. Please enter a valid command`)
     }
 
     callback()
