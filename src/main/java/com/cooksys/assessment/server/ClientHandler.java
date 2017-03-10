@@ -61,14 +61,12 @@ public class ClientHandler implements Runnable {
 						setUsername(message.getUsername());
 						createTimestamp(message);
 						log.info("user <{}> connected", message.getUsername());
-						message.setContents("user <" + message.getUsername() + "> connected" );
 						server.broadcastSend(message);
 						}
 						break;
 					case "disconnect":
 						server.removeHandler(this);
 						createTimestamp(message);
-						message.setContents("user <"+message.getUsername()+"> disconnected" );
 						server.broadcastSend(message);
 						log.info("user <{}> disconnected", message.getUsername());
 						this.socket.close();
@@ -123,4 +121,5 @@ public class ClientHandler implements Runnable {
 		String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
 		m.setTimestamp(timeStamp);
 	}
+	
 }
